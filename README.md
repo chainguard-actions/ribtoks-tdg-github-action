@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v0.4.13-beta | [`v0.4.13-beta`](https://github.com/chainguard-actions/ribtoks-tdg-github-action/tree/v0.4.13-beta) | [`e11144d`](https://github.com/ribtoks/tdg-github-action/commit/e11144d45ce376bc67519ff2def348e147c69eb8) |
+| v0.4.15-beta | [`v0.4.15-beta`](https://github.com/chainguard-actions/ribtoks-tdg-github-action/tree/v0.4.15-beta) | [`bb99875`](https://github.com/ribtoks/tdg-github-action/commit/bb998752af7ac294aa9350895908ae7eac3f1c1d) |
 | v0.4.16-beta | [`v0.4.16-beta`](https://github.com/chainguard-actions/ribtoks-tdg-github-action/tree/v0.4.16-beta) | [`f093b93`](https://github.com/ribtoks/tdg-github-action/commit/f093b9309d79281ff459a7e19793d64b96b03e2e) |
 | v0.4.17-beta | [`v0.4.17-beta`](https://github.com/chainguard-actions/ribtoks-tdg-github-action/tree/v0.4.17-beta) | [`7cc4b66`](https://github.com/ribtoks/tdg-github-action/commit/7cc4b6643e790dde39ac8bf2cfc8c08c660afbb2) |
 
