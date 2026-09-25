@@ -1,0 +1,48 @@
+name: Test dry-run mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a source file with TODO comments
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/src"
+          cat > "$GITHUB_WORKSPACE/tests/fixtures/src/sample.go" << 'EOF'
+          package main
+
+          // TODO: This is a sample todo comment that needs to be fixed soon
+          func main() {
+              // BUG: This is a sample bug comment that should be addressed
+              println("hello world")
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPO: "actions/checkout"
+          ISSUE_REPO: "actions/checkout"
+          TOKEN: ${{ github.token }}
+          ROOT: "tests/fixtures/src"
+          DRY_RUN: "1"
+          INCLUDE_PATTERN: "\\.go$"
+          MIN_WORDS: "3"
+          MIN_CHARACTERS: "30"
+          REF: "refs/heads/act-harness"
+          SHA: ${{ github.sha }}
+          LABEL: "todo comment"
+          EXTENDED_LABELS: "1"
+
+      - name: Assert scannedIssues output is set
+        env:
+          SCANNED: ${{ steps.action.outputs.scannedIssues }}
+        run: |
+          echo "scannedIssues: $SCANNED"
+          if [ "$SCANNED" != "1" ]; then
+            echo "FAIL: expected scannedIssues=1 but got '$SCANNED'"
+            exit 1
+          fi
+          echo "PASS: scannedIssues=1"

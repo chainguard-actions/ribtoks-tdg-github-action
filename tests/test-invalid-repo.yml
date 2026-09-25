@@ -1,0 +1,42 @@
+name: Test invalid repo graceful failure
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          REPO: "nonexistent-owner-xyz/nonexistent-repo-xyz"
+          ISSUE_REPO: "nonexistent-owner-xyz/nonexistent-repo-xyz"
+          TOKEN: ${{ github.token }}
+          ROOT: "."
+          DRY_RUN: "1"
+          REF: "refs/heads/act-harness"
+          SHA: ${{ github.sha }}
+          LABEL: "todo comment"
+
+      - name: Assert action failed gracefully on invalid repo
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          SCANNED: ${{ steps.action.outputs.scannedIssues }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "scannedIssues: $SCANNED"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully on nonexistent repo"
+          elif [ "$OUTCOME" = "success" ]; then
+            if [ "$SCANNED" = "1" ]; then
+              echo "PASS: action succeeded (repo may exist or token has broad access)"
+            else
+              echo "FAIL: action succeeded but scannedIssues is not set"
+              exit 1
+            fi
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

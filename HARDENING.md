@@ -8,15 +8,15 @@
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
-**Harden Agent Version:** `1`
+**Harden Agent Version:** `2`
 
-Action **ribtoks--tdg-github-action/v0.4.16-beta** was hardened automatically. 2 finding(s) were identified and resolved across 1 iteration(s).
+Action **ribtoks--tdg-github-action/v0.4.16-beta** was hardened automatically. 3 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
 ### unpinned-uses (severity: high)
 
-The composite action uses `actions/setup-go@v6` which is pinned to a mutable version tag (`@v6`) rather than an immutable 40-character commit SHA. This exposes the action to supply-chain attacks if the tag is moved to a different commit.
+The composite action uses `actions/setup-go@v6`, which is pinned to a mutable tag (`v6`) rather than a full 40-character commit SHA. This means the referenced action can be silently changed by the upstream maintainer, enabling supply-chain attacks.
 
 Locations:
 
@@ -24,12 +24,19 @@ Locations:
 
 ### script-injection (severity: high)
 
-Sub-rule (a): Two `run:` blocks directly interpolate `${{ ... }}` expressions into shell command strings, which is a script injection risk as the values are substituted by the YAML template engine before the shell ever sees them. (1) Line 68: `go build -ldflags="-w -s -X main.GitCommit=${{ github.sha }}"` — ${{ github.sha }} is interpolated directly into the shell command; use $GITHUB_SHA instead. (2) Line 88: `"${{ github.action_path }}/tdg-github-action"` — ${{ github.action_path }} is interpolated directly into the shell command; use $GITHUB_ACTION_PATH instead.
+Sub-rule (a): The 'Build action binary' run block directly interpolates `${{ github.sha }}` inside the shell command string: `go build -ldflags="-w -s -X main.GitCommit=${{ github.sha }}" -o tdg-github-action .`. Any `${{ }}` expression interpolated directly into a `run:` block is a script-injection risk because the value is substituted by the YAML template engine before the shell ever sees it, bypassing shell quoting.
 
 Locations:
 
 - `action.yml:68`
-- `action.yml:88`
+
+### script-injection (severity: high)
+
+Sub-rule (a): The 'Run tdg-github-action' run block directly interpolates `${{ github.action_path }}` inside the shell command string: `"${{ github.action_path }}/tdg-github-action"`. The `github.action_path` context value is substituted by the YAML template engine before the shell executes, meaning a specially crafted path could inject shell metacharacters.
+
+Locations:
+
+- `action.yml:89`
 
 ## Iteration Notes
 
@@ -39,5 +46,5 @@ Locations:
 
 **Notes:**
 
-Fixed three issues in action.yml: (1) Pinned actions/setup-go@v6 to its full commit SHA 4a3601121dd01d1626a1e23e37211e3254c1c06c with a # v6 comment for readability. (2) Replaced ${{ github.sha }} in the go build ldflags with $GITHUB_SHA, which is a built-in GitHub Actions environment variable that is safe to use directly in shell without template injection risk. (3) Replaced ${{ github.action_path }} in the binary execution command with $GITHUB_ACTION_PATH, which is also a built-in environment variable safe for direct shell use.
+Fixed three findings in hardened/action/action.yml: (1) Pinned actions/setup-go@v6 to full SHA 924ae3a1cded613372ab5595356fb5720e22ba16 with tag comment. (2) Moved ${{ github.sha }} into env var GIT_COMMIT in the 'Build action binary' step, referencing it as $GIT_COMMIT in the shell command. (3) Moved ${{ github.action_path }} into env var ACTION_PATH in the 'Run tdg-github-action' step, referencing it as "$ACTION_PATH/tdg-github-action" in the shell command. The existing INPUT_* env vars in the run-tdg step were preserved and merged into a single env block.
 

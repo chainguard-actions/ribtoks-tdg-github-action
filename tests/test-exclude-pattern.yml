@@ -1,0 +1,52 @@
+name: Test exclude pattern
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create source files with TODO comments
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/exclude-src"
+          # This file should be excluded
+          cat > "$GITHUB_WORKSPACE/tests/fixtures/exclude-src/excluded.txt" << 'EOF'
+          TODO: This todo comment should be excluded from scanning by pattern
+          EOF
+          # This file should be included
+          cat > "$GITHUB_WORKSPACE/tests/fixtures/exclude-src/included.go" << 'EOF'
+          package main
+
+          // TODO: This is a go file todo comment that should be scanned properly
+          func main() {
+              println("hello world")
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPO: "actions/checkout"
+          ISSUE_REPO: "actions/checkout"
+          TOKEN: ${{ github.token }}
+          ROOT: "tests/fixtures/exclude-src"
+          DRY_RUN: "1"
+          EXCLUDE_PATTERN: "\\.txt$"
+          MIN_WORDS: "3"
+          MIN_CHARACTERS: "30"
+          REF: "refs/heads/act-harness"
+          SHA: ${{ github.sha }}
+          LABEL: "todo comment"
+          EXTENDED_LABELS: "0"
+
+      - name: Assert scannedIssues output is set
+        env:
+          SCANNED: ${{ steps.action.outputs.scannedIssues }}
+        run: |
+          echo "scannedIssues: $SCANNED"
+          if [ "$SCANNED" != "1" ]; then
+            echo "FAIL: expected scannedIssues=1 but got '$SCANNED'"
+            exit 1
+          fi
+          echo "PASS: scannedIssues=1 with exclude pattern"
