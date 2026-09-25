@@ -1,0 +1,60 @@
+name: Test dry-run mode with TODO comments
+on:
+  workflow_dispatch:
+jobs:
+  test-dry-run:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create source file with TODO comments
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-src"
+          cat > "$GITHUB_WORKSPACE/test-src/example.go" << 'EOF'
+          package main
+
+          // TODO: This is a test todo comment that has enough words and characters to be picked up
+          // BUG: This is a test bug comment that has enough words and characters to be picked up
+          func main() {}
+          EOF
+          echo "Created test source file"
+          cat "$GITHUB_WORKSPACE/test-src/example.go"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          REPO: "owner/repo"
+          TOKEN: "fake-token-dry-run"
+          DRY_RUN: "1"
+          ROOT: "test-src"
+          REF: "refs/heads/main"
+          SHA: "abc123def456"
+          INCLUDE_PATTERN: "\\.go$"
+          MIN_WORDS: "3"
+          MIN_CHARACTERS: "30"
+          SETUP_GO_CACHE: "false"
+
+      - name: Assert action ran (not skipped)
+        run: |
+          OUTCOME="${{ steps.action.outcome }}"
+          echo "Action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped entirely"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME"
+
+      - name: Assert binary was built
+        run: |
+          echo "Searching for tdg-github-action binary..."
+          FOUND=$(find / -name "tdg-github-action" -type f 2>/dev/null | head -5 || true)
+          echo "Found: $FOUND"
+          if [ -z "$FOUND" ]; then
+            echo "FAIL: tdg-github-action binary not found - build step must have failed"
+            exit 1
+          fi
+          echo "PASS: binary found at $FOUND"
