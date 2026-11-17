@@ -78,7 +78,6 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}
       env:
-        ACTION_PATH: ${{ github.action_path }}
         INPUT_REPO: ${{ inputs.REPO }}
         INPUT_ISSUE_REPO: ${{ inputs.ISSUE_REPO }}
         INPUT_TOKEN: ${{ inputs.TOKEN }}
@@ -99,7 +98,7 @@ runs:
         INPUT_COMMENT_ON_ISSUES: ${{ inputs.COMMENT_ON_ISSUES }}
         INPUT_ASSIGN_FROM_BLAME: ${{ inputs.ASSIGN_FROM_BLAME }}
       run: |
-        "$ACTION_PATH/tdg-github-action"
+        "$GITHUB_ACTION_PATH/tdg-github-action"
 outputs:
   scannedIssues:
     description: "Equals to 1 if completed successfully"
