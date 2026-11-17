@@ -4,9 +4,8 @@
   "version": "v0.4.17-beta",
   "commit_sha": "7cc4b6643e790dde39ac8bf2cfc8c08c660afbb2",
   "url": "https://github.com/ribtoks/tdg-github-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
-  "test_agent_version": "1",
-  "harden_agent_version": "2",
-  "dependency_fingerprint": "sha256:09544953892f7db9e6f892ced5f25cffceabc82c2220710d7e9fb9fdec471448"
+  "test_agent_version": "2",
+  "harden_agent_version": "2"
 }
